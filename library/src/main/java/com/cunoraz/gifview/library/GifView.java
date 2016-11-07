@@ -34,6 +34,7 @@ public class GifView extends View {
      * Scaling factor to fit the animation within view bounds.
      */
     private float mScale;
+    private boolean mSetForcedScale;
 
     /**
      * Scaled movie frames width and height.
@@ -75,6 +76,8 @@ public class GifView extends View {
         //-1 is default value
         mMovieResourceId = array.getResourceId(R.styleable.GifView_gif, -1);
         mPaused = array.getBoolean(R.styleable.GifView_paused, false);
+        mScale = array.getFloat(R.styleable.GifView_scale, -1);
+        mSetForcedScale = mScale > -1;
 
         array.recycle();
 
@@ -127,6 +130,14 @@ public class GifView extends View {
         return !this.mPaused;
     }
 
+    public void setScale(int scale){
+        mScale = scale;
+        mSetForcedScale = true;
+        if(!mPaused){
+            invalidate();
+        }
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
@@ -134,36 +145,38 @@ public class GifView extends View {
             int movieWidth = movie.width();
             int movieHeight = movie.height();
 
+            if(!mSetForcedScale) {
 			/*
              * Calculate horizontal scaling
 			 */
-            float scaleH = 1f;
-            int measureModeWidth = MeasureSpec.getMode(widthMeasureSpec);
+                float scaleH = 1f;
+                int measureModeWidth = MeasureSpec.getMode(widthMeasureSpec);
 
-            if (measureModeWidth != MeasureSpec.UNSPECIFIED) {
-                int maximumWidth = MeasureSpec.getSize(widthMeasureSpec);
-                if (movieWidth > maximumWidth) {
-                    scaleH = (float) movieWidth / (float) maximumWidth;
+                if (measureModeWidth != MeasureSpec.UNSPECIFIED) {
+                    int maximumWidth = MeasureSpec.getSize(widthMeasureSpec);
+                    if (movieWidth > maximumWidth) {
+                        scaleH = (float) movieWidth / (float) maximumWidth;
+                    }
                 }
-            }
 
 			/*
              * calculate vertical scaling
 			 */
-            float scaleW = 1f;
-            int measureModeHeight = MeasureSpec.getMode(heightMeasureSpec);
+                float scaleW = 1f;
+                int measureModeHeight = MeasureSpec.getMode(heightMeasureSpec);
 
-            if (measureModeHeight != MeasureSpec.UNSPECIFIED) {
-                int maximumHeight = MeasureSpec.getSize(heightMeasureSpec);
-                if (movieHeight > maximumHeight) {
-                    scaleW = (float) movieHeight / (float) maximumHeight;
+                if (measureModeHeight != MeasureSpec.UNSPECIFIED) {
+                    int maximumHeight = MeasureSpec.getSize(heightMeasureSpec);
+                    if (movieHeight > maximumHeight) {
+                        scaleW = (float) movieHeight / (float) maximumHeight;
+                    }
                 }
-            }
 
 			/*
              * calculate overall scale
 			 */
-            mScale = 1f / Math.max(scaleH, scaleW);
+                mScale = 1f / Math.max(scaleH, scaleW);
+            }
 
             mMeasuredMovieWidth = (int) (movieWidth * mScale);
             mMeasuredMovieHeight = (int) (movieHeight * mScale);
